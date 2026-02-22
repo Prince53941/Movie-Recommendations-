@@ -53,8 +53,8 @@ def recommend_by_movie(user_movie, top_n=5):
 
     for i in sim_indices:
         results.append({
-            "Movie": movies.loc[i, "title"],
-            "Genre": movies.loc[i, "genres"],
+            "Title": movies.loc[i, "title"],
+            "Genres": movies.loc[i, "genres"],
             "Similarity (%)": round(float(cosine_scores[i])*100,2)
         })
 
@@ -73,11 +73,19 @@ def recommend_by_genre(user_genre, top_n=5):
     if filtered.empty:
         return None
 
-    return filtered.head(top_n)[["title","genres"]]
+    df = filtered.head(top_n)[["title","genres"]]
+    df = df.reset_index(drop=True)
+    df.index = df.index + 1
+
+    df.columns = ["Title","Genres"]
+
+    return df
 
 # ---------------- UI ---------------- #
 
 option = st.radio("Choose Recommendation Type:", ["By Movie Name","By Genre"])
+
+# -------- MOVIE SEARCH -------- #
 
 if option == "By Movie Name":
 
@@ -92,18 +100,18 @@ if option == "By Movie Name":
             if result:
 
                 st.subheader("Input Movie")
-                st.write(result["Input Movie"])
+                st.write("Title:", result["Input Movie"])
                 st.write("Genre:", result["Genre"])
 
                 st.subheader("Recommended Movies")
 
-                for r in result["Results"]:
+                for idx, r in enumerate(result["Results"], start=1):
                     st.markdown(f"""
-                    **🎬 {r['Movie']}**  
-                    Genre: {r['Genre']}  
-                    Similarity: {r['Similarity (%)']}%
-                    ---
-                    """)
+**{idx}. {r['Title']}**  
+Genre: {r['Genres']}  
+Similarity: {r['Similarity (%)']}%
+---
+""")
 
             else:
                 st.error("Movie not found.")
@@ -114,6 +122,8 @@ if option == "By Movie Name":
 
         else:
             st.warning("Please enter a movie name.")
+
+# -------- GENRE SEARCH -------- #
 
 else:
 
